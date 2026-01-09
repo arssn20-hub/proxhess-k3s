@@ -32,17 +32,11 @@ jobs:
       - name: Config SSH
         run: |
           mkdir -p ~/.ssh
-          # Création du fichier de clé privée en conservant exactement les retours à la ligne
-          cat <<'EOF' > ~/.ssh/id_rsa
-${{ secrets.VPS_SSH_KEY }}
-EOF
+          echo "${{ secrets.VPS_SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          # Ajouter l'hôte EC2 à known_hosts pour éviter les prompts
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
       - name: Déploiement sur le VPS
         run: |
-          # Synchroniser le code avec le serveur EC2
           rsync -avz --exclude '.git' ./ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/lamp-app
-          # Lancer les containers sur EC2
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ~/lamp-app && docker compose pull && docker compose up -d --build"
