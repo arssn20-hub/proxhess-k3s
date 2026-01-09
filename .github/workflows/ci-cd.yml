@@ -32,11 +32,15 @@ jobs:
       - name: Config SSH
         run: |
           mkdir -p ~/.ssh
+          # Écrire la clé privée correctement sur le runner GitHub
           echo "${{ secrets.VPS_SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+          # Ajouter ton serveur EC2 à known_hosts pour éviter le prompt
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
       - name: Déploiement sur le VPS
         run: |
+          # Copier le code vers le serveur
           rsync -avz --exclude '.git' ./ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/lamp-app
+          # Lancer les containers sur le serveur
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ~/lamp-app && docker compose pull && docker compose up -d --build"
