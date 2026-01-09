@@ -32,10 +32,8 @@ jobs:
       - name: Config SSH
         run: |
           mkdir -p ~/.ssh
-          # Création du fichier de clé privée avec retour à la ligne exact
-          cat <<EOF > ~/.ssh/id_rsa
-${{ secrets.VPS_SSH_KEY }}
-EOF
+          # Création du fichier de clé privée correctement
+          echo "${{ secrets.VPS_SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
